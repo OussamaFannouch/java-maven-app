@@ -1,68 +1,36 @@
-def gv
-
-
-
-pipeline {
+pipeline{
     agent any
-    parameters {
-        choice(name: 'VERSION', choices: ['1.0', '2.0', '3.0'], description: 'Select the version to build')
-        booleanParam(name: 'executeTEST', defaultValue: true, description: 'Whether to run tests')
+    tools {
+        maven 'maven-3.9'
     }
-    
     stages {
-        stage("init") {
+        stage('Build Jar') {
+            steps {
+                script{
+                    echo 'Building the application...'
+                    sh 'mvn package'
+                }   
+            }
+        }
+        stage('Build Image') {
+            steps {
+                script{
+                    echo 'Building the Docker Image...'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'docker build -t oussamafannouch/demo-app:jma-2.0 .'
+                        sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                        sh 'docker push oussamafannouch/demo-app:jma-2.0'
+                    }
+                }   
+            }
+        }
+        stage('Deploy') {
             steps {
                 script {
-                    gv = load "script.groovy"
-                }
-                echo 'Building the application...'
-            }
-        }
-        stage("build") {
-            steps {
-                script {
-                    gv.buildApp()
-                }
-                echo 'Building the application...'
-            }
-        }
-        stage("test") {
-            when{
-                expression{
-                    params.executeTEST
+                    echo 'Deploying Application...'
+                    // Add your deployment commands here
                 }
             }
-            steps {
-                script {
-                    gv.testApp()
-                }
-                echo 'Running tests...'
-            }
-        }
-        stage("deploy") {
-            input{
-                message 'Do you want to deploy the application?'
-                ok 'done'
-                parameters {
-                            choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the version to build')                    
-                }
-            }
-            steps {
-                echo 'Deploying the application...'
-                echo "Deploying version: ${params.VERSION}"
-                echo "Deploying to environment: ${params.ENV}"
-            }
-        }
-    }
-    post {
-        always {
-            echo 'This will always run after the stages complete.'
-        }
-        success {
-            echo 'This will run only if all stages were successful.'
-        }
-        failure {
-            echo 'This will run only if any stage fails.'
         }
     }
 }
