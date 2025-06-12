@@ -8,7 +8,6 @@ pipeline{
             steps {
                 script {
                     echo 'Running tests...'
-                    echo "Executing pipeline of branch $BRANCH_NAME"
                 }
             }
         }
