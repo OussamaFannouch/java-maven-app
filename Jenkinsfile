@@ -1,9 +1,9 @@
 #!/usr/bin/env groovy
 
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
+library identifier: 'jenkins-shared-library@main', retriever: modernSCM(
     [$class: 'GitSCMSource',
-     remote: 'https://gitlab.com/nanuchi/jenkins-shared-library.git',
-     credentialsId: 'gitlab-credentials'
+     remote: 'https://github.com/OussamaFannouch/jenkins-shared-library.git',
+     credentialsId: 'github-credentials'
     ]
 )
 
@@ -13,7 +13,7 @@ pipeline {
         maven 'maven-3.9'
     }
     environment {
-        IMAGE_NAME = 'nanajanashia/demo-app:java-maven-2.0'
+        IMAGE_NAME = 'oussamafannouch/demo-app:java-maven-2.0'
     }
     stages {
         stage('build app') {
@@ -40,7 +40,7 @@ pipeline {
                    echo 'deploying docker image to EC2...'
 
                    def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
-                   def ec2Instance = "ec2-user@35.180.251.121"
+                   def ec2Instance = "ec2-user@13.60.240.110"
 
                    sshagent(['ec2-server-key']) {
                        sh "scp -o StrictHostKeyChecking=no server-cmds.sh ${ec2Instance}:/home/ec2-user"
